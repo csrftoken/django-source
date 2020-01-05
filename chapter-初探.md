@@ -87,7 +87,7 @@ def python_reloader(main_func, args, kwargs):
 
 程序启动，因为没有 `RUN_MAIN` 变量，所以走的 else 语句块。
 
-颇为有趣的是，`restart_with_reloader` 函数中使用 `subprocess.call` 方法执行了启动程序的命令（ e.g：python3 manage.py runserver ），此刻 `RUN_MAIN` 的值为 `True` ，接着执行 `_thread.start_new_thread(main_func, args, kwargs)` 开启新线程，意味着启动了 `django` 服务。
+颇为有趣的是，`restart_with_reloader` 函数中使用 `subprocess.call` 方法执行了启动程序的命令（ e.g：python3 manage.py runserver ），此刻 `RUN_MAIN` 的值为 `True` ，接着执行 `_thread.start_new_thread(main_func, args, kwargs)` 开启新线程，意味着启动了 `django` 服务。
 
 如果子进程不退出，则停留在 `call` 方法这里（进行请求处理），如果子进程退出，退出码不是3，while 则被终结。反之就继续循环，重新创建子进程。
 
