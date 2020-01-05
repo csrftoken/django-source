@@ -7,6 +7,12 @@
 
 ## 目录
 
+- [x] 章节01：django 是如何做到自动重启的
+- [ ] 章节02：django 请求到响应
+- [ ] 章节03：django App 加载
+- [ ] 章节04：django 配置文件懒加载
+- [ ] 章节05：未完待续...
+
 ## Support
 
 2020 by LiuZhiChao.
