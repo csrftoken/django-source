@@ -36,7 +36,7 @@ s = WSGIServer(("127.0.0.1", 1234), WSGIRequestHandler)
 # 设置应用，注意了这里不一定非是个函数，可是一切可调用的对象
 # 例如 函数、方法、类或实现了 __call__ 方法的实例
 s.set_app(demo_app)
-# 开始监听请求，这里应该是用的 poll 或者 selector 的网络模型。
+# 开始监听请求，这里应该是用的 poll 或者 selector 的网络模型。
 s.serve_forever()
 
 ```
@@ -87,6 +87,6 @@ class WSGIHandler(base.BaseHandler):
 
 ## 总结
 
-至此，我们了解到了 django 的服务是从 `django/core/servers/basehttp.py` 下的 `run` 方法启动了一个 `wsgi` 服务。这个可调用的对象来自于 `django.core.handlers.wsgi.WSGIHandler`，这个类在实例化(`__init__`)的过程中，加载了中间件。
+至此，我们了解到了 django 的服务是从 `django/core/servers/basehttp.py` 下的 `run` 方法启动了一个 `wsgi` 服务。这个可调用的对象来自于 `django.core.handlers.wsgi.WSGIHandler`，这个类在实例化(`__init__`)的过程中，加载了中间件。
 
 我们也更应该了解下 `wsgi`。
