@@ -12,7 +12,7 @@
 
 ## 简单的 web 服务
 
-根据 django 运行的服务，我们也利用 wsgiref 这个模块实现一个简单的 web 服务。
+在此之前，根据 django 运行的服务，我们也利用 wsgiref 这个模块实现一个简单的 web 服务。
 
 ```python
 
@@ -41,9 +41,9 @@ s.serve_forever()
 
 ```
 
-运行起来 `server_demo.py` 这个文件，然后通过浏览器访问 `127.0.0.1:1234`，会发现页面响应了一堆内容。
+运行起来 `server_demo.py` 这个文件，然后通过浏览器访问 `127.0.0.1:1234`，会发现页面响应了一堆内容(不必关心展示的内容具体是什么)。
 
-## WSGI
+## django 的服务
 
 接下来观察源码。
 
@@ -59,12 +59,6 @@ def run(addr, port, wsgi_handler, ipv6=False, threading=False, server_cls=WSGISe
         httpd_cls = server_cls
     httpd = httpd_cls(server_address, WSGIRequestHandler, ipv6=ipv6)
     if threading:
-        # ThreadingMixIn.daemon_threads indicates how threads will behave on an
-        # abrupt shutdown; like quitting the server by the user or restarting
-        # by the auto-reloader. True means the server will not wait for thread
-        # termination before it quits. This will make auto-reloader faster
-        # and will prevent the need to kill the server manually if a thread
-        # isn't terminating correctly.
         httpd.daemon_threads = True
     # 这里的 wsgi_handler 来自于
     # from django.core.handlers.wsgi import WSGIHandler
@@ -72,3 +66,27 @@ def run(addr, port, wsgi_handler, ipv6=False, threading=False, server_cls=WSGISe
     httpd.serve_forever()
 
 ```
+
+## WSGIHandler
+
+这是一个 wsgi 应用，它被定义在了 `proj/wsgi.py` 下的 `application` 属性。(`application` 对应刚刚上面代码中出现的 `wsgi_handler`)
+
+`application` 这个属性对应的是个 `get_wsgi_application` 函数，该函数调用的过程中，针对 `django.core.handlers.wsgi.WSGIHandler` 这个类进行了实例化，在 `__init__` 方法中，加载了 `django` 中间件。
+
+```python
+
+# django.core.handlers.wsgi.py
+class WSGIHandler(base.BaseHandler):
+    request_class = WSGIRequest
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 载入中间件
+        self.load_middleware()
+```
+
+## 总结
+
+至此，我们了解到了 django 的服务是从 `django/core/servers/basehttp.py` 下的 `run` 方法启动了一个 `wsgi` 服务。这个可调用的对象来自于 `django.core.handlers.wsgi.WSGIHandler`，这个类在实例化(`__init__`)的过程中，加载了中间件。
+
+我们也更应该了解下 `wsgi`。

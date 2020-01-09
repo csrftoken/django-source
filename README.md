@@ -10,8 +10,8 @@
 ## 目录
 
 - [x] 章节01：django 是如何做到自动重启的
-- [ ] 章节02：django python3 manage.py runserver 发生了什么？
-- [ ] 章节03：django 请求到响应
+- [ ] 章节02：django runserver 发生了什么？
+- [ ] 章节03：django 请求来了
 - [ ] 章节04：django App 加载
 - [ ] 章节05：django 配置文件懒加载
 - [ ] 章节06：未完待续...
