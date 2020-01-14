@@ -15,11 +15,11 @@
 
 既然是协议、规范，那么一定是为了解决一些问题的。
 
-如果没有该规范，一个服务器调用应用是用这种方式，另一个服务器调度是那种方式，如此的话，编写的应用部署只能选择局限于某些服务器，达不到通用的效果。
+如果没有该规范，一个服务器调用应用是用这种方式，另一个服务器调度是那种方式，如此的话，编写的应用部署只能局限于某些服务器，达不到通用的效果。
 
 例如我们常常接触的 web 框架有 `django`、`flask`、`bottle` 等等，它们均支持了 `wsgi` 协议。
 
-*关于支持了 WSGI 协议的 web server，具体可参见 [Servers which support WSGI](https://wsgi.readthedocs.io/en/latest/servers.html)*
+*关于支持了 WSGI 协议的 web server，具体可参见 [Servers which support WSGI](https://wsgi.readthedocs.io/en/latest/servers.html)。*
 
 ## WSGI接口
 
