@@ -81,7 +81,7 @@ class WSGIHandler(base.BaseHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # 载入中间件
+        # 载入中间件(注意：这里很关键。)
         self.load_middleware()
 ```
 
