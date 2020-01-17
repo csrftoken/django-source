@@ -107,10 +107,123 @@ class BaseHandler:
 
 上述我们了解到，通过实现了 `wsgi` 框架跑起来一个服务的时候，将 `django.core.handlers.wsgi.py` 下的 `WSGIHandler` 的实例 设置为了应用程序。
 
-`WSGIHandler` 实例化的时候，执行了 `load_middleware` 方法，该方法载入了 `django` 的中间件，并设置了 `_middleware_chain` 属性。（该属性有可能是 `_get_response` 或 某个中间件的实例(实例中有 `_get_response` 一个属性)。）
+`WSGIHandler` 实例化的时候，执行了 `load_middleware` 方法，该方法载入了 `django` 的中间件，并设置了 `_middleware_chain` 属性。（该属性有可能是 `_get_response` 或 某个中间件的实例(实例中有 `_get_response` 一个属性)。）
 
 请求被转发到应用程序 `django`，也就是 `WSGIHandler` 下的 `__call__`，这里设置了路由解析器，并调用了 `_middleware_chain`，返回值是一个 `response` 对象。
 
 接下来，我们看下 `_middleware_chain` 发生了什么？
 
 ## 渐入佳境
+
+既然上文我们设定 `_middleware_chain` 是一个中间件，且是一个类的实例，那么问题来了？
+
+实例加括号调用什么方法？ 答案是类的 `__call__` 方法。
+
+`__call__` 方法被定义在了 `django.utils.deprecation` 下的 `MiddlewareMixin`。(继承它的子类并没有实现 `__call__` 方法。)
+
+```python
+
+# django.utils.deprecation.py
+
+class MiddlewareMixin:
+    def __init__(self, get_response=None):
+        # 还记得上文提到的 `get_response` 吗？
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request):
+        """ 上文我们提到的执行 `_middleware_chain`，其实就是执行到了这里。  
+
+        """
+        response = None
+        # 开始处理中间件方法, 请求来了...
+        if hasattr(self, 'process_request'):
+            # 如果中间件方法返回了 response 对象，相当于截断了后续的操作。
+            response = self.process_request(request)
+        # 真正有趣的地方来了, 我们假设中间件方法没有拦截，执行了 `get_response` 方法。
+        # 请求处理的逻辑就是在这里了 ... 我们继续向下看
+        response = response or self.get_response(request)
+        # 继续执行中间件方法
+        if hasattr(self, 'process_response'):
+            response = self.process_response(request, response)
+        return response
+```
+
+上述主要调用了中间件的 `__call__` 方法，在该方法中，执行了中间件相关处理方法，继续向下剖析。
+
+```python
+
+# django.core.handlers.base.py BaseHandler 下的 `_get_response` 方法
+
+def _get_response(self, request):
+    """解析并调用视图，以及 视图、异常和模板响应 中间件。
+
+    这个方法是 请求/响应 中间件中发生的所有事情。
+    """
+    response = None
+
+    # 这个里面主要是根据 settings 配置的 url 节点，导入并获取一个解析器对象。
+    if hasattr(request, 'urlconf'):
+        urlconf = request.urlconf
+        set_urlconf(urlconf)
+        resolver = get_resolver(urlconf)
+    else:
+        resolver = get_resolver()
+
+    # 根据访问的路由获取 django 路由解析器中的匹配的视图
+    resolver_match = resolver.resolve(request.path_info)
+    callback, callback_args, callback_kwargs = resolver_match
+    request.resolver_match = resolver_match
+
+    # 执行含有 `process_view` 方法的中间件
+    for middleware_method in self._view_middleware:
+        response = middleware_method(request, callback, callback_args, callback_kwargs)
+        if response:
+            break
+
+    # 如果响应对象并没有拦截，执行视图函数
+    if response is None:
+        # 保证视图的原子性，这里的变量表示视图
+        wrapped_callback = self.make_view_atomic(callback)
+        try:
+            # django 是视图写法有俩种，FBV 和 CBV
+            # CBV 会调用 `as_view` 方法，内部实现了 view 函数，然后该函数分发到了类的 `dispatch` 方法，通过反射映射到具体的方法。
+            # 其实本质上这里都是在调用视图函数。
+            # 这一步就是真正在执行您的视图内的逻辑啦。
+            response = wrapped_callback(request, *callback_args, **callback_kwargs)
+        except Exception as e:
+            # 如果异常，这里捕获掉，执行含有 `process_exception` 方法的中间件
+            response = self.process_exception_by_middleware(e, request)
+
+    if response is None:
+        # 这里告知你，要必须返回一个 `response` 对象。
+        ...
+
+    # 如果上面的视图中间件返回有 response 对象且可被调用
+    elif hasattr(response, 'render') and callable(response.render):
+        # 执行含有 `process_template_response` 方法的中间件
+        for middleware_method in self._template_response_middleware:
+            response = middleware_method(request, response)
+
+        try:
+            response = response.render()
+        except Exception as e:
+            # 如果发生异常，这里捕获掉，执行含有 `process_exception` 方法的中间件
+            response = self.process_exception_by_middleware(e, request)
+
+    # 响应 response 对象。
+    return response
+
+```
+
+到这里，通过上述剖析，如果请求进来了，我们知悉了请求是如何到我们的视图逻辑中的。
+
+## 总结
+
+当我们的服务跑起来的时候，设置应用处理器 `WSGIHandler` 实例化的时候加载了中间件的操作。
+
+请求来了，请求被转发到了 `WSGIHandler` 下的 `__call__` 方法，这里初始化了请求来了的信号，及将请求信息封装到了 `WSGIRequest` 这个对象中。
+
+接着向下执行 `get_response` 方法主要设置了路由的配置模块路径，到了 `_middleware_chain` 方法这里，它其实是一个 `_get_response` 对象 或是某个中间件的实例(这个实例中有个 `get_response` 属性指向 `_get_response` 这个方法)。这里我们假设它是中间件实例，调用的实例的 `__call__` 方法(存在于 `MiddlewareMixin` 下)。这个方法下执行了 `process_request` 和 `process_response` 这俩个中间件，在它们中间执行 `_get_response`，这个方法会解析路由并调用视图方法及一些中间件方法。
+
+`_get_response` 方法下，获取了路由解析器实例，路由解析器根据请求信息匹配到视图，并执行视图方法，获取到响应结果（如果中间件设置了相关方法，会进行调用）。
