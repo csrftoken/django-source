@@ -224,6 +224,6 @@ def _get_response(self, request):
 
 请求来了，请求被转发到了 `WSGIHandler` 下的 `__call__` 方法，这里初始化了请求来了的信号，及将请求信息封装到了 `WSGIRequest` 这个对象中。
 
-接着向下执行 `get_response` 方法主要设置了路由的配置模块路径，到了 `_middleware_chain` 方法这里，它其实是一个 `_get_response` 对象 或是某个中间件的实例(这个实例中有个 `get_response` 属性指向 `_get_response` 这个方法)。这里我们假设它是中间件实例，调用的实例的 `__call__` 方法(存在于 `MiddlewareMixin` 下)。这个方法下执行了 `process_request` 和 `process_response` 这俩个中间件，在它们中间执行 `_get_response`，这个方法会解析路由并调用视图方法及一些中间件方法。
+接着向下执行 `get_response` 方法主要设置了路由的配置模块路径，到了 `_middleware_chain` 方法这里，它其实是一个 `_get_response` 对象 或是某个中间件的实例(这个实例中有个 `get_response` 属性指向 `_get_response` 这个方法)。这里我们假设它是中间件实例，调用的实例的 `__call__` 方法(存在于 `MiddlewareMixin` 下)。这个方法下执行了 `process_request` 和 `process_response` 这俩个中间件，在它们中间执行 `_get_response`，这个方法会解析路由并调用视图方法及一些中间件方法。
 
-`_get_response` 方法下，获取了路由解析器实例，路由解析器根据请求信息匹配到视图，并执行视图方法，获取到响应结果（如果中间件设置了相关方法，会进行调用）。
+`_get_response` 方法下，获取了路由解析器实例，路由解析器根据请求信息匹配到视图，并执行视图方法，获取到响应结果（如果中间件设置了相关方法，会进行调用）。
