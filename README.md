@@ -13,8 +13,8 @@
 - [x] 章节02：django runserver
 - [x] 章节03：django wsgi
 - [x] 章节04：django 请求来了
-- [ ] 章节05：django App 加载
-- [ ] 章节06：django 配置文件懒加载
+- [ ] 章节05：django app 模块导入
+- [ ] 章节06：django 命令解析
 - [ ] 章节07：未完待续...
 
 ## Support

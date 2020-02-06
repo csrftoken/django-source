@@ -5,7 +5,9 @@
 
 但是这里面涉及到一个 `wsgi` 的知识点。
 
-## WSGI协议
+## WSGI 历史
+
+## WSGI 协议
 
 > 全称叫做 `Web Server Gateway Interface`
 
@@ -21,7 +23,12 @@
 
 *关于支持了 WSGI 协议的 web server，具体可参见 [Servers which support WSGI](https://wsgi.readthedocs.io/en/latest/servers.html)。*
 
-## WSGI接口
+## Why you need WSGI
+
+WSGI 加快了Python web应用程序的开发，因为只需了解关于WSGI的基本信息。如果使用 `django`、`cherrypy`，则不需要关心特定框架如何利用WSGI标准。但是，了解如何实现 WSGI 将有非常大的好处。
+
+
+## WSGI 接口
 
 ### 概念
 
@@ -43,8 +50,6 @@ WSGI 对于 `application` 对象有如下三点要求：
 - `application` 接收由 `web server` 转发的 `request`，并将处理结果返回给 `server`。
 
 像 `django`、`falsk`、`bottle` 等框架都有自己实现的简单 `WSGI Server`，但是这种一般用于开发环境下调试，生产环境下建议使用其它的 `wsgi server`。
-
-## WSGI 实现
 
 ## 参考文献
 
