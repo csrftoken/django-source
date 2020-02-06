@@ -2,11 +2,11 @@
 
 上节我们了解到，`django` 是如何进行处理请求的。
 
-那么 `django` 是如何进行 `app` 模块导入的。
+那么 `django` 是如何进行 `app` 模块导入的。
 
-我们所知道的。
+我们所知道的。
 
-运行 `django` 应用分为 生产 和 本地开发 模式。一个通过 `wsgi.py` 来达到生产环境的运行，另一个通过 `manage.py runserver` 来达到本地开发的运行。
+运行 `django` 应用分为 生产 和 本地开发 模式。一个通过 `wsgi.py` 来达到生产环境的运行，另一个通过 `manage.py runserver` 来达到本地开发的运行。
 
 但是我们发现，这俩处入口均有 `django.setup()` 这一步。
 
@@ -14,7 +14,7 @@
 
 ## 开始
 
-我们从 `setup` 这个功能函数说起。
+我们从 `setup` 这个功能函数说起。
 
 ```python
 
@@ -118,4 +118,4 @@ def populate(self, installed_apps=None):
 
 ## 总结
 
-到此，我们在 `run` 一个 django 应用的时候，会调用 `django` 的 `setup` 方法，主要是载入所有的应用和模型。
+到此，我们在 `run` 一个 django 应用的时候，会调用 `django` 的 `setup` 方法，主要是载入所有的应用和模型。
