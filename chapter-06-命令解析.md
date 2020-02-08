@@ -36,7 +36,7 @@ def execute_from_command_line(argv=None):
 
     # 实例化
     utility = ManagementUtility(argv)
-    # 执行命令
+    # 执行命令
     utility.execute()
 
 # django/core/management
@@ -57,7 +57,7 @@ class ManagementUtility:
 
         """
 
-        # 如果没有命令参数，则默认展示帮助
+        # 如果没有命令参数，则默认展示帮助
         try:
             subcommand = self.argv[1]
         except IndexError:
@@ -119,7 +119,7 @@ class ManagementUtility:
 
 ## 深究
 
-上面除了针对特殊情况的处理之外，核心主要在 `self.fetch_command(subcommand).run_from_argv(self.argv)` 这里。
+上面除了针对特殊情况的处理之外，核心主要在 `self.fetch_command(subcommand).run_from_argv(self.argv)` 这里。
 
 这是一个链式操作，接连调用了俩个方法。
 
@@ -129,14 +129,14 @@ class ManagementUtility:
 
 def fetch_command(self, subcommand):
     # 获取所有相关的命令
-    # 主要是通过文件查找获取每个 app 下的 management 文件夹下所有的文件
-    # 是一个字典集合，key 为子命令名称，value 为 app 的名称
+    # 主要是通过文件查找获取每个 app 下的 management 文件夹下所有的文件
+    # 是一个字典集合，key 为子命令名称，value 为 app 的名称
     commands = get_commands()
     try:
         # 通过字典映射到值
         app_name = commands[subcommand]
     except KeyError:
-        # 如果发生异常，退出并进行提示 (并根据当前错误命令，提示与其相关的命令)
+        # 如果发生异常，退出并进行提示 (并根据当前错误命令，提示与其相关的命令)
         # 这里用到名为 difflib 模块(标准库下的)
         ...
 
@@ -219,7 +219,7 @@ def execute(self, *args, **options):
 
 ## 总结
 
-通过上述表述，我们知晓了 `runserver`, `startapp` 等命令是如何进行执行的。
+通过上述表述，我们知晓了 `runserver`, `startapp` 等命令是如何进行执行的。
 
 首先从 `manage.py` 这个文件开始，执行 `execute_from_command_line` 函数（`sys.argv` 作为参数），然后调用 `ManagementUtility` 类进行实例化，该实例调用 `execute` 方法。
 
@@ -235,13 +235,13 @@ def execute(self, *args, **options):
 
 在 `app` 下创建 `management/commands` 文件夹（这个是必须的），文件名称你可以随便定义，例如 `custom_command.py`，那么调用的时候就是 `python manage.py custom_command`
 
-然后在 `custom_command.py` 文件下定义一个 `Command` 类，并继承 `BaseCommand`（处于 `django/core/management/base` 下），然后类下实现一个 `handle` 方法（必须的）（实现你自己的逻辑）
+然后在 `custom_command.py` 文件下定义一个 `Command` 类，并继承 `BaseCommand`（处于 `django/core/management/base` 下），然后类下实现一个 `handle` 方法（必须的）（实现你自己的逻辑）
 
 - `difflib` 模块
 
 在我们输入错误的命令的时候，比如执行 `python manage.py runserver` ，假设 `runserver` 打成了 `runservev`，这里会提示你是否是打出 `runserver` 这个单词。
 
-这里 `django` 使用的 python 标准库下的 `difflib` 模块来达到这个目的。
+这里 `django` 使用的是 python 标准库下的 `difflib` 模块来达到这个目的。
 
 该模块主要用于文本之间的对比等操作。例如我们举个例子。
 
