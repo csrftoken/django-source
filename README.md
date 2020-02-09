@@ -15,7 +15,8 @@
 - [x] 章节04：django 请求来了
 - [x] 章节05：django 应用及模型加载
 - [x] 章节06：django 命令解析
-- [ ] 章节07：未完待续...
+- [x] 章节07：django settings懒加载
+- [ ] 章节08：未完待续...
 
 ## Support
 
