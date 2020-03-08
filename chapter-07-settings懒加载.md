@@ -22,7 +22,7 @@ from proj import settings
 
 详情我们可以通过源码去查看。
 
-## 了解
+## 了解
 
 ```python
 

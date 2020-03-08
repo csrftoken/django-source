@@ -16,7 +16,10 @@
 - [x] 章节05：django 应用及模型加载
 - [x] 章节06：django 命令解析
 - [x] 章节07：django settings懒加载
-- [ ] 章节08：未完待续...
+- [ ] 章节08：django 路由匹配
+- [ ] 章节09：django FBV&CBV
+- [ ] 章节10：django response
+- [ ] 章节11：未完待续...
 
 ## Support
 
