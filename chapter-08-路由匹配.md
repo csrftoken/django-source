@@ -12,7 +12,7 @@
 
 ```python
 
-# 这里无所谓 request 是否有 urlconf 属性，会获得一个解析器
+# 这里的 request 是否有 urlconf 属性，都会获得一个解析器
 if hasattr(request, 'urlconf'):
     urlconf = request.urlconf
     set_urlconf(urlconf)
@@ -60,6 +60,7 @@ class URLResolver:
         path = str(path)
         tried = []
         # 这一步是 正则校验，路径是否以 `/` 开头，匹配不到返回 404
+        # match 很关键，后续可能会持续调用，进行匹配
         match = self.pattern.match(path)
         if match:
             # 从匹配中获取相关的匹配项
@@ -113,4 +114,14 @@ class URLResolver:
 
 ```
 
-`resolve` 方法内部作路由解析，如果解析成功返回 `ResolverMatch` 对象，里面包含了解析的函数及相关参数等。
+`resolve` 方法内部做路由解析，如果解析成功返回 `ResolverMatch` 对象，里面包含了解析的函数及相关参数等。
+
+反之返回 `404`。
+
+## 总结
+
+当请求来临之后，`wsgi` 模块将请求信息转发到我们的 `django` 程序，`django` 会预先加载一个根路由解析器（ `URLResolver` 对象 ）。（根节点是项目下的 `urls.py` ）
+
+在路由进行匹配的时候，调用 `URLResolver` 下的 `resolve` 方法，持续遍历 `url_patterns` 属性（这里也就是我们的 `url.py` 为什么要设置 `url_patterns` 属性）进行匹配。
+
+解析成功就可以获取到视图方法及相关参数。
