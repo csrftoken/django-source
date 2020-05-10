@@ -12,6 +12,7 @@
 
 ```python
 
+# 这里无所谓 request 是否有 urlconf 属性，会获得一个解析器
 if hasattr(request, 'urlconf'):
     urlconf = request.urlconf
     set_urlconf(urlconf)
@@ -27,9 +28,9 @@ request.resolver_match = resolver_match
 
 > *其它的暂不做分析，我们只针对路由匹配做解析*
 
-接下来，我们先看第一步判断那里，这里面有个共同点，就是都会调用 `get_resolver` 这个方法，区别在于是否传递了 `urlconf` 这个参数。
+接下来，我们先看第一步判断那里，这里面有个共同点，就是都会调用 `get_resolver` 这个方法，区别在于是否传递了 `urlconf` 这个参数。
 
-我们可以看下 `get_resolver` 这个方法。
+我们可以看下 `get_resolver` 这个方法。
 
 ```python
 
@@ -53,6 +54,41 @@ def get_resolver(urlconf=None):
 ```python
 
 class URLResolver:
+
+    def resolve(self, path):
+        # 路径有可能是 reverse_lazy 对象，所以 str 一下
+        path = str(path)
+        tried = []
+        # 这一步是 正则校验，路径是否以 `/` 开头，匹配不到返回 404
+        match = self.pattern.match(path)
+        if match:
+            # 从匹配中获取相关的匹配项
+            # e.g 路径 -> str, 未命名参数 -> tuple, 命名参数 -> dict
+            new_path, args, kwargs = match
+            # url_patterns > List[URLResolver]
+            for pattern in self.url_patterns:
+                try:
+                    # 针对匹配到路径进行解析
+                    # ResolverMatch(func=func, args=(), kwargs={}, url_name=None, app_names=[], namespaces=[])
+                    sub_match = pattern.resolve(new_path)
+                except Resolver404 as e:
+                    ...
+                else:
+                    if sub_match:
+                        ...
+                        # 返回解析匹配
+                        return ResolverMatch(
+                            sub_match.func,
+                            sub_match_args,
+                            sub_match_dict,
+                            sub_match.url_name,
+                            [self.app_name] + sub_match.app_names,
+                            [self.namespace] + sub_match.namespaces,
+                        )
+                    tried.append([pattern])
+            raise Resolver404({'tried': tried, 'path': new_path})
+        raise Resolver404({'path': path})
+
     def __init__(self, pattern, urlconf_name, default_kwargs=None, app_name=None, namespace=None):
         # 指向的是 RegexPattern 对象
         # 关于该对象是一个类似于 re 模块，可以进行正则匹配
@@ -75,44 +111,6 @@ class URLResolver:
         self._populated = False
         self._local = threading.local()
 
-    def resolve(self, path):
-        # 路径有可能是 reverse_lazy 对象，所以 str 一下
-        path = str(path)
-        tried = []
-        # 这一步就是校验，路径是否 `/` 开头，匹配不到返回 404
-        match = self.pattern.match(path)
-        if match:
-            new_path, args, kwargs = match
-            for pattern in self.url_patterns:
-                try:
-                    sub_match = pattern.resolve(new_path)
-                except Resolver404 as e:
-                    sub_tried = e.args[0].get('tried')
-                    if sub_tried is not None:
-                        tried.extend([pattern] + t for t in sub_tried)
-                    else:
-                        tried.append([pattern])
-                else:
-                    if sub_match:
-                        # Merge captured arguments in match with submatch
-                        sub_match_dict = {**kwargs, **self.default_kwargs}
-                        # Update the sub_match_dict with the kwargs from the sub_match.
-                        sub_match_dict.update(sub_match.kwargs)
-                        # If there are *any* named groups, ignore all non-named groups.
-                        # Otherwise, pass all non-named arguments as positional arguments.
-                        sub_match_args = sub_match.args
-                        if not sub_match_dict:
-                            sub_match_args = args + sub_match.args
-                        return ResolverMatch(
-                            sub_match.func,
-                            sub_match_args,
-                            sub_match_dict,
-                            sub_match.url_name,
-                            [self.app_name] + sub_match.app_names,
-                            [self.namespace] + sub_match.namespaces,
-                        )
-                    tried.append([pattern])
-            raise Resolver404({'tried': tried, 'path': new_path})
-        raise Resolver404({'path': path})
-
 ```
+
+`resolve` 方法内部作路由解析，如果解析成功返回 `ResolverMatch` 对象，里面包含了解析的函数及相关参数等。
