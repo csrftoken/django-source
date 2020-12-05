@@ -120,8 +120,8 @@ class URLResolver:
 
 ## 总结
 
-当请求来临之后，`wsgi` 模块将请求信息转发到我们的 `django` 程序，`django` 会预先加载一个根路由解析器（ `URLResolver` 对象 ）。（根节点是项目下的 `urls.py` ）
+当请求来临之后，`wsgi` 模块将请求信息转发到我们的 `django` 程序，`django` 会预先加载一个根路由解析器（ `URLResolver` 对象 ）。（根节点是项目下的 `urls.py` ）
 
-在路由进行匹配的时候，调用 `URLResolver` 下的 `resolve` 方法，持续遍历 `url_patterns` 属性（这里也就是我们的 `url.py` 为什么要设置 `url_patterns` 属性）进行匹配。
+在路由进行匹配的时候，调用 `URLResolver` 下的 `resolve` 方法，持续遍历 `url_patterns` 属性（这里也就是我们的 `url.py` 为什么要设置 `url_patterns` 属性）进行匹配。
 
 解析成功就可以获取到视图方法及相关参数。
